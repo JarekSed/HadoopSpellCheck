@@ -152,32 +152,6 @@ public class WordCount {
   }
 
 
-
-
-    // This partitioner maintains order across different reduce tasks (by deciding which keys
-    // get send to which reducers). It currently makes the naive assumption that our input
-    // is uniformly distributed in the range 0 to INT_MAX. This range is divided by our # of
-    // reduce tasks, and each reducer becomes responsible for some subset of the range.
-    public static class OrderedPartitioner implements Partitioner<IntWritable, Text> {
-        @Override
-            public int getPartition(IntWritable key, Text value, int numPartitions) {
-                int num = key.get();
-                int splitPoint = Integer.MAX_VALUE / numPartitions;
-                int partition = num / splitPoint;
-                return partition < numPartitions ? partition : numPartitions -1;
-            }
-
-        public void configure(JobConf job) {}
-    }
-
-    // Only use part- files for input (or the directory they are in)
-    public static class InputFileFilter implements PathFilter {
-        @Override public boolean accept(Path path) {
-            return true;
-            //return path.toString() == tmp_path_string || path.getName().startsWith("part-");
-        }
-    }
-
     // This maps the text by counting how many times each word occurs. 
     // On each word, emits a <word, 1> pair
     public static class TokenizerMapper 
