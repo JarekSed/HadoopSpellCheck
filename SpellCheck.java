@@ -27,10 +27,10 @@ import org.apache.hadoop.io.NullWritable;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-public class WordCount {
+public class SpellCheck{
   private static String tmp_path_string = "/tmp/tmp_sort_path" + UUID.randomUUID().toString();
   private static String big_path_string = "/tmp/rjy/big.txt";
-  private static final Log LOG = LogFactory.getLog(WordCount.class);
+  private static final Log LOG = LogFactory.getLog(SpellCheck.class);
 
   public static class ReverseTotalOrderPartitioner <K extends WritableComparable, V> extends TotalOrderPartitioner<K, V> {
   
@@ -156,7 +156,7 @@ public class WordCount {
 
     // This maps the text by counting how many times each word occurs. 
     // On each word, emits a <word, 1> pair
-  public static class TokenizerMapper 
+  public static class SpellCheckMapper
       extends MapReduceBase implements Mapper<Object, Text, Text, IntWritable>{
 
           private static final HashMap<String, Integer> nWords = new HashMap<String, Integer>();
@@ -275,14 +275,14 @@ public class WordCount {
         String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
         Path tmp_path = new Path(tmp_path_string);
         if (otherArgs.length != 2) {
-            System.err.println("Usage: wordcount <in> <out>");
+            System.err.println("Usage: spellcheck <in> <out>");
             System.exit(2);
         }
 
-        JobConf jobConf1 = new JobConf(conf, WordCount.class);
-        jobConf1.setJobName("Word Count");
+        JobConf jobConf1 = new JobConf(conf, SpellCheck.class);
+        jobConf1.setJobName("Spell Check");
 
-        jobConf1.setMapperClass(TokenizerMapper.class);        
+        jobConf1.setMapperClass(SpellCheckMapper.class);        
         jobConf1.setReducerClass(IntSumReducer.class);
         jobConf1.setCombinerClass(IntSumReducer.class);
 
@@ -309,9 +309,9 @@ public class WordCount {
          */
         Configuration newConf = new Configuration();
         new GenericOptionsParser(newConf, args);
-        JobConf jobConf = new JobConf(newConf, WordCount.class);
+        JobConf jobConf = new JobConf(newConf, SpellCheck.class);
         tmp_path.getFileSystem(newConf).deleteOnExit(tmp_path);
-        jobConf.setJobName("Word Count Sorted");
+        jobConf.setJobName("Spellcheck Sorter");
 
         jobConf.setMapperClass(SwitchMapper.class);        
         jobConf.setReducerClass(SwitchReducer.class);
