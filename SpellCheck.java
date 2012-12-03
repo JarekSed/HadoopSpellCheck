@@ -154,8 +154,7 @@ public class SpellCheck{
   }
 
 
-    // This maps the text by counting how many times each word occurs. 
-    // On each word, emits a <word, 1> pair
+  // maps (word, freq) pairs to (freq, spellcheck(word)) pairs
   public static class SpellCheckMapper
       extends MapReduceBase implements Mapper<Text, IntWritable, IntWritable, Text> {
 
@@ -185,9 +184,6 @@ public class SpellCheck{
           // also swaps k,vs
           public void map(Text key, IntWritable value, OutputCollector<IntWritable, Text> output, Reporter reporter
                   ) throws IOException {
-              // Tokenize by lots of nonalphanumeric chars.
-              // If we did value.ToString.split() we could use a regex instead of hardcoded delims,
-              // but this would use a ton of space.
               String corrected = correct(key.toString());
               word.set(corrected);
               output.collect(value, word);
@@ -196,11 +192,11 @@ public class SpellCheck{
           public void configure(JobConf conf) {
               try{
                   // Read in big.txt
+                  LOG.info("Mapper reading big.txt");
                   FileSystem fs = FileSystem.get(conf);
                   Path big_path = new Path(big_path_string);
                   if (!fs.exists(big_path)) {
-                      // TODO: stderr and stdout don't work inside mappers
-                      System.err.println("could not find /tmp/rjy/big.txt");
+                      LOG.error("could not find /tmp/rjy/big.txt");
                       System.exit(2);
                   }
                   BufferedReader in = new BufferedReader(new InputStreamReader(fs.open(big_path)));
@@ -212,6 +208,7 @@ public class SpellCheck{
                   in.close();
               }catch(IOException e) {
                 // TODO: what should we actually do on exceptions?
+                  LOG.error("IOException in spellcheck mapper configure");
                   System.exit(-1);
               }
           }

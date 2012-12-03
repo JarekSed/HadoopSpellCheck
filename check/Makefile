@@ -12,3 +12,6 @@ download:
 		echo "retrieving $$FILE";										 \
 		$(HADOOP) fs -get $$FILE `basename $$FILE`;	 \
 	done
+
+cleanup:
+	rm -rf part-0000*
