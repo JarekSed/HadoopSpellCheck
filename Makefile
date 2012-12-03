@@ -13,7 +13,12 @@ spellcheck:
 
 upload:
 	$(HADOOP) dfs -put $(PWD)/big.txt /tmp/rjy/big.txt
+	$(HADOOP) dfs -put $(PWD)/simple.txt /tmp/rjy/big.txt
 
 test: spellcheck
 	$(HADOOP) fs -rmr /tmp/hadoop/$(USER)/output; exit 0
 	$(HADOOP) jar $(OUTJAR) SpellCheck -Dmapred.reduce.tasks=10 /tmp/hadoop/$(USER)/input/stock_symbol_keywords.tsv /tmp/hadoop/$(USER)/output
+
+simple_test: spellcheck
+	$(HADOOP) fs -rmr /tmp/hadoop/$(USER)/output; exit 0
+	$(HADOOP) jar $(OUTJAR) SpellCheck /tmp/hadoop/$(USER)/input/simple.txt /tmp/hadoop/$(USER)/output
