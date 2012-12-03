@@ -162,6 +162,8 @@ public class SpellCheck{
           private final static IntWritable one = new IntWritable(1);
           private Text word = new Text();
 
+          private int largestWord = 0;
+
           private static final ArrayList<String> edits(String word) {
               ArrayList<String> result = new ArrayList<String>();
               for(int i=0; i < word.length(); ++i) result.add(word.substring(0, i) + word.substring(i+1));
@@ -206,7 +208,10 @@ public class SpellCheck{
                   Pattern p = Pattern.compile("[a-zA-Z]+");
                   for(String temp = ""; temp != null; temp = in.readLine()){
                       Matcher m = p.matcher(temp.toLowerCase());
-                      while(m.find()) nWords.put((temp = m.group()).toLowerCase(), nWords.containsKey(temp) ? nWords.get(temp) + 1 : 1);
+                      while(m.find()) {
+                          nWords.put((temp = m.group()).toLowerCase(), nWords.containsKey(temp) ? nWords.get(temp) + 1 : 1);
+                          largestWord = Math.max(largestWord, temp.length());
+                      }
                   }           
                   in.close();
               }catch(IOException e) {
