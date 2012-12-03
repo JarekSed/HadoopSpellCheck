@@ -163,23 +163,59 @@ public class SpellCheck{
           private final static IntWritable one = new IntWritable(1);
           private Text word = new Text();
 
-          private static final ArrayList<String> edits(String word) {
-              ArrayList<String> result = new ArrayList<String>();
-              for(int i=0; i < word.length(); ++i) result.add(word.substring(0, i) + word.substring(i+1));
-              for(int i=0; i < word.length()-1; ++i) result.add(word.substring(0, i) + word.substring(i+1, i+2) + word.substring(i, i+1) + word.substring(i+2));
-              for(int i=0; i < word.length(); ++i) for(char c='a'; c <= 'z'; ++c) result.add(word.substring(0, i) + String.valueOf(c) + word.substring(i+1));
-              for(int i=0; i <= word.length(); ++i) for(char c='a'; c <= 'z'; ++c) result.add(word.substring(0, i) + String.valueOf(c) + word.substring(i));
-              return result;
+          // retarded garbage to be able to return two values
+          public class ResultPair {
+            public String worked; // worked
+            public ArrayList<String> list;
+            public ResultPair(String worked, ArrayList<String> list) {
+              this.worked = worked; this.list = list;
+            }
+          }
+
+          private static final ResultPair checkEdits(String word) {
+              ArrayList<String> candidates = new ArrayList<String>();
+              for (int i=0; i < word.length(); ++i) {
+                String test = word.substring(0, i) + word.substring(i+1);
+                // store it, but
+                candidates.add(test);
+                // also check it to see if it works. if it does, return early.
+                if (nWords.containsKey(test)) return new ResultPair(test, candidates);
+              }
+              for (int i=0; i < word.length()-1; ++i) {
+                String test = word.substring(0, i) + word.substring(i+1, i+2) + word.substring(i, i+1) + word.substring(i+2);
+                candidates.add(test);
+                if (nWords.containsKey(test)) return new ResultPair(test, candidates);
+              }
+              for (int i=0; i < word.length(); ++i) {
+                for (char c='a'; c <= 'z'; ++c) {
+                  String test = word.substring(0, i) + String.valueOf(c) + word.substring(i+1);
+                  candidates.add(test);
+                  if (nWords.containsKey(test)) return new ResultPair(test, candidates);
+                }
+              }
+              for (int i=0; i <= word.length(); ++i) {
+                for (char c='a'; c <= 'z'; ++c) {
+                  String test = word.substring(0, i) + String.valueOf(c) + word.substring(i);
+                  candidates.add(test);
+                  if (nWords.containsKey(test)) return new ResultPair(test, candidates);
+                }
+              }
+              return new ResultPair(null, candidates);
           }
 
           public static final String correct(String word) {
-              if(nWords.containsKey(word)) return word;
-              ArrayList<String> list = edits(word);
-              HashMap<Integer, String> candidates = new HashMap<Integer, String>();
-              for(String s : list) if(nWords.containsKey(s)) candidates.put(nWords.get(s),s);
-              if(candidates.size() > 0) return candidates.get(Collections.max(candidates.keySet()));
-              for(String s : list) for(String w : edits(s)) if(nWords.containsKey(w)) candidates.put(nWords.get(w),w);
-              return candidates.size() > 0 ? candidates.get(Collections.max(candidates.keySet())) : word + ", since nothing else seems closer...";
+              if (nWords.containsKey(word)) return word;
+
+              // one edit deep
+              ResultPair res = checkEdits(word);
+              if (res.worked != null) return res.worked;
+
+              // two edits deep
+              for (String s : res.list) {
+                res = checkEdits(s);
+                if (res.worked != null) return res.worked;
+              }
+              return word + ", since nothing else seems closer...";
           }
 
 
