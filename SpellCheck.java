@@ -185,6 +185,7 @@ public class SpellCheck{
           public void map(Text key, IntWritable value, OutputCollector<IntWritable, Text> output, Reporter reporter
                   ) throws IOException {
               String corrected = correct(key.toString().toLowerCase());
+              reporter.progress();
               if(!corrected.equalsIgnoreCase(key.toString())) {
                   word.set(key.toString() + " corrected to " + corrected);
                   output.collect(value, word);
