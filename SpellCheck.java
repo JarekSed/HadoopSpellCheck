@@ -157,7 +157,7 @@ public class SpellCheck{
     // This maps the text by counting how many times each word occurs. 
     // On each word, emits a <word, 1> pair
   public static class SpellCheckMapper
-      extends MapReduceBase implements Mapper<Object, Text, Text, IntWritable>{
+      extends MapReduceBase implements Mapper<Object, Text, IntWritable, Text> {
 
           private static final HashMap<String, Integer> nWords = new HashMap<String, Integer>();
           private final static IntWritable one = new IntWritable(1);
@@ -221,24 +221,15 @@ public class SpellCheck{
               return word + ", since nothing else seems closer...";
           }
 
-
-          public void map(Object key, Text value, OutputCollector<Text, IntWritable> output, Reporter reporter
+          // also swaps k,vs
+          public void map(Object key, Text value, OutputCollector<IntWritable, Text> output, Reporter reporter
                   ) throws IOException {
               // Tokenize by lots of nonalphanumeric chars.
               // If we did value.ToString.split() we could use a regex instead of hardcoded delims,
               // but this would use a ton of space.
-              StringTokenizer itr = new StringTokenizer(value.toString(), " \n\t.,;:(){}[]`);");
-              while (itr.hasMoreTokens()) {
-                  // Make sure framework knows we are making progress.
-                  reporter.progress();
-                  String cur_word = itr.nextToken();
-                  String corrected = correct(cur_word);
-                  if (!corrected.equals(cur_word)) {
-                      word.set(corrected);
-                      output.collect(word, one);
-                  } 
-              }
-
+              String corrected = correct(value.toString());
+              word.set(corrected);
+              output.collect((IntWritable) key, word);
           }
 
           public void configure(JobConf conf) {
@@ -264,6 +255,30 @@ public class SpellCheck{
               }
           }
       }
+
+    // This maps the text by counting how many times each word occurs.
+    // On each word, emits a <word, 1> pair
+    public static class TokenizerMapper
+        extends MapReduceBase implements Mapper<Object, Text, Text, IntWritable>{
+
+            private final static IntWritable one = new IntWritable(1);
+            private Text word = new Text();
+
+            public void map(Object key, Text value, OutputCollector<Text, IntWritable> output, Reporter reporter
+                    ) throws IOException {
+                // Tokenize by lots of nonalphanumeric chars.
+                // If we did value.ToString.split() we could use a regex instead of hardcoded delims,
+                // but this would use a ton of space.
+                StringTokenizer itr = new StringTokenizer(value.toString(), " \n\t.,;:(){}[];");
+                while (itr.hasMoreTokens()) {
+                    // Make sure framework knows we are making progress.
+                    reporter.progress();
+                    // We saw another instance of the enxt word
+                    word.set(itr.nextToken());
+                    output.collect(word, one);
+                }
+            }
+        }
 
     // Sums up the counts for each key.
     public static class IntSumReducer 
@@ -321,7 +336,7 @@ public class SpellCheck{
         JobConf jobConf1 = new JobConf(conf, SpellCheck.class);
         jobConf1.setJobName("Spell Check");
 
-        jobConf1.setMapperClass(SpellCheckMapper.class);        
+        jobConf1.setMapperClass(TokenizerMapper.class);        
         jobConf1.setReducerClass(IntSumReducer.class);
         jobConf1.setCombinerClass(IntSumReducer.class);
 
@@ -352,7 +367,7 @@ public class SpellCheck{
         tmp_path.getFileSystem(newConf).deleteOnExit(tmp_path);
         jobConf.setJobName("Spellcheck Sorter");
 
-        jobConf.setMapperClass(SwitchMapper.class);        
+        jobConf.setMapperClass(SpellCheckMapper.class);        
         jobConf.setReducerClass(SwitchReducer.class);
 
         JobClient client = new JobClient(jobConf);
