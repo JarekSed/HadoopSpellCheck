@@ -164,11 +164,11 @@ public class SpellCheck{
           private Text word = new Text();
 
           // retarded garbage to be able to return two values
-          public class ResultPair {
+          public static class ResultPair {
             public String worked; // worked
             public ArrayList<String> list;
-            public ResultPair(String worked, ArrayList<String> list) {
-              this.worked = worked; this.list = list;
+            public ResultPair(String w, ArrayList<String> l) {
+              worked = worked; list = list;
             }
           }
 
@@ -181,11 +181,13 @@ public class SpellCheck{
                 // also check it to see if it works. if it does, return early.
                 if (nWords.containsKey(test)) return new ResultPair(test, candidates);
               }
+
               for (int i=0; i < word.length()-1; ++i) {
                 String test = word.substring(0, i) + word.substring(i+1, i+2) + word.substring(i, i+1) + word.substring(i+2);
                 candidates.add(test);
                 if (nWords.containsKey(test)) return new ResultPair(test, candidates);
               }
+
               for (int i=0; i < word.length(); ++i) {
                 for (char c='a'; c <= 'z'; ++c) {
                   String test = word.substring(0, i) + String.valueOf(c) + word.substring(i+1);
@@ -193,6 +195,7 @@ public class SpellCheck{
                   if (nWords.containsKey(test)) return new ResultPair(test, candidates);
                 }
               }
+
               for (int i=0; i <= word.length(); ++i) {
                 for (char c='a'; c <= 'z'; ++c) {
                   String test = word.substring(0, i) + String.valueOf(c) + word.substring(i);
