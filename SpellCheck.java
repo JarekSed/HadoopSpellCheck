@@ -334,7 +334,7 @@ public class SpellCheck{
         }
 
         JobConf jobConf1 = new JobConf(conf, SpellCheck.class);
-        jobConf1.setJobName("Spell Check");
+        jobConf1.setJobName("Spell Check 1");
 
         jobConf1.setMapperClass(TokenizerMapper.class);        
         jobConf1.setReducerClass(IntSumReducer.class);
@@ -365,7 +365,7 @@ public class SpellCheck{
         new GenericOptionsParser(newConf, args);
         JobConf jobConf = new JobConf(newConf, SpellCheck.class);
         tmp_path.getFileSystem(newConf).deleteOnExit(tmp_path);
-        jobConf.setJobName("Spellcheck Sorter");
+        jobConf.setJobName("Spellcheck 2");
 
         jobConf.setMapperClass(SpellCheckMapper.class);        
         jobConf.setReducerClass(SwitchReducer.class);
