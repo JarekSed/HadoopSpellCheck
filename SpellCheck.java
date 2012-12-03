@@ -168,7 +168,7 @@ public class SpellCheck{
             public String worked; // worked
             public ArrayList<String> list;
             public ResultPair(String w, ArrayList<String> l) {
-              worked = worked; list = list;
+              worked = w; list = l;
             }
           }
 
