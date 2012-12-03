@@ -1,5 +1,7 @@
 import java.io.IOException;
 import java.io.File;
+import java.io.*;
+import java.util.regex.*;
 import java.net.URI;
 import java.util.*;
 import org.apache.hadoop.fs.Path;
@@ -27,7 +29,29 @@ import org.apache.commons.logging.LogFactory;
 
 public class WordCount {
   private static String tmp_path_string = "/tmp/tmp_sort_path" + UUID.randomUUID().toString();
+  private static String big_path_string = "/tmp/rjy/big.txt";
   private static final Log LOG = LogFactory.getLog(WordCount.class);
+
+  private static final HashMap<String, Integer> nWords = new HashMap<String, Integer>();
+
+  private final ArrayList<String> edits(String word) {
+    ArrayList<String> result = new ArrayList<String>();
+    for(int i=0; i < word.length(); ++i) result.add(word.substring(0, i) + word.substring(i+1));
+    for(int i=0; i < word.length()-1; ++i) result.add(word.substring(0, i) + word.substring(i+1, i+2) + word.substring(i, i+1) + word.substring(i+2));
+    for(int i=0; i < word.length(); ++i) for(char c='a'; c <= 'z'; ++c) result.add(word.substring(0, i) + String.valueOf(c) + word.substring(i+1));
+    for(int i=0; i <= word.length(); ++i) for(char c='a'; c <= 'z'; ++c) result.add(word.substring(0, i) + String.valueOf(c) + word.substring(i));
+    return result;
+  }
+
+  public final String correct(String word) {
+    if(nWords.containsKey(word)) return word;
+    ArrayList<String> list = edits(word);
+    HashMap<Integer, String> candidates = new HashMap<Integer, String>();
+    for(String s : list) if(nWords.containsKey(s)) candidates.put(nWords.get(s),s);
+    if(candidates.size() > 0) return candidates.get(Collections.max(candidates.keySet()));
+    for(String s : list) for(String w : edits(s)) if(nWords.containsKey(w)) candidates.put(nWords.get(w),w);
+    return candidates.size() > 0 ? candidates.get(Collections.max(candidates.keySet())) : word;
+  }
 
   public static class ReverseTotalOrderPartitioner <K extends WritableComparable, V> extends TotalOrderPartitioner<K, V> {
   
@@ -228,6 +252,21 @@ public class WordCount {
             System.err.println("Usage: wordcount <in> <out>");
             System.exit(2);
         }
+
+        // Read in big.txt
+        FileSystem fs = FileSystem.get(conf);
+        Path big_path = new Path(big_path_string);
+        if (!fs.exists(big_path)) {
+            System.err.println("could not find /tmp/rjy/big.txt");
+            System.exit(2);
+        }
+        BufferedReader in = new BufferedReader(new InputStreamReader(fs.open(big_path)));
+        Pattern p = Pattern.compile("\\w+");
+        for(String temp = ""; temp != null; temp = in.readLine()){
+          Matcher m = p.matcher(temp.toLowerCase());
+          while(m.find()) nWords.put((temp = m.group()), nWords.containsKey(temp) ? nWords.get(temp) + 1 : 1);
+        }
+        in.close();
 
         JobConf jobConf1 = new JobConf(conf, WordCount.class);
         jobConf1.setJobName("Word Count");
