@@ -34,7 +34,7 @@ public class WordCount {
 
   private static final HashMap<String, Integer> nWords = new HashMap<String, Integer>();
 
-  private final ArrayList<String> edits(String word) {
+  private static final ArrayList<String> edits(String word) {
     ArrayList<String> result = new ArrayList<String>();
     for(int i=0; i < word.length(); ++i) result.add(word.substring(0, i) + word.substring(i+1));
     for(int i=0; i < word.length()-1; ++i) result.add(word.substring(0, i) + word.substring(i+1, i+2) + word.substring(i, i+1) + word.substring(i+2));
@@ -43,7 +43,7 @@ public class WordCount {
     return result;
   }
 
-  public final String correct(String word) {
+  public static final String correct(String word) {
     if(nWords.containsKey(word)) return word;
     ArrayList<String> list = edits(word);
     HashMap<Integer, String> candidates = new HashMap<Integer, String>();
@@ -193,9 +193,16 @@ public class WordCount {
                 while (itr.hasMoreTokens()) {
                     // Make sure framework knows we are making progress.
                     reporter.progress();
-                    // We saw another instance of the enxt word
-                    word.set(itr.nextToken());
-                    output.collect(word, one);
+                    String cur_word = itr.nextToken();
+                    String corrected = correct(cur_word);
+                    LOG.debug("corrected '" + cur_word + "' to '" + corrected + "'");
+                    if (!corrected.equals(cur_word)) {
+                        word.set(corrected);
+                        output.collect(word, one);
+                    } else {
+                        word.set(corrected + " is totally correct");
+                        output.collect(word, one);
+                    }
                 }
             }
         }
@@ -276,7 +283,7 @@ public class WordCount {
         jobConf1.setCombinerClass(IntSumReducer.class);
 
         JobClient client1 = new JobClient(jobConf1);
-        jobConf1.setOutputFormat(SequenceFileOutputFormat.class);
+        //jobConf1.setOutputFormat(SequenceFileOutputFormat.class);
         jobConf1.setOutputKeyClass(Text.class);
         jobConf1.setOutputValueClass(IntWritable.class);
         FileInputFormat.setInputPaths(jobConf1, otherArgs[0]);
@@ -296,10 +303,11 @@ public class WordCount {
          * if tmp_path is the output of the run above, and is a SequenceFile of Text keys
          * and IntWritable values, this run will sort them in decreasing order of value
          */
+        /*
         Configuration newConf = new Configuration();
         new GenericOptionsParser(newConf, args);
         JobConf jobConf = new JobConf(newConf, WordCount.class);
-        tmp_path.getFileSystem(newConf).deleteOnExit(tmp_path);
+        //tmp_path.getFileSystem(newConf).deleteOnExit(tmp_path);
         jobConf.setJobName("Word Count Sorted");
 
         jobConf.setMapperClass(SwitchMapper.class);        
@@ -335,7 +343,7 @@ public class WordCount {
         System.out.println("Job ended: " + end_time);
         System.out.println("The job took " + 
                 (end_time.getTime() - startTime.getTime()) /1000 + " seconds.");
-                
+*/                
 
     }
 }
