@@ -26,7 +26,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 public class WordCount {
-  private static String tmp_path_string = "/tmp/tmp_sort_path";
+  private static String tmp_path_string = "/tmp/tmp_sort_path" + UUID.randomUUID().toString();
   private static final Log LOG = LogFactory.getLog(WordCount.class);
 
   public static class ReverseTotalOrderPartitioner <K extends WritableComparable, V> extends TotalOrderPartitioner<K, V> {
