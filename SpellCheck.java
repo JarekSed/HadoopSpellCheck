@@ -184,13 +184,16 @@ public class SpellCheck{
           // also swaps k,vs
           public void map(Text key, IntWritable value, OutputCollector<IntWritable, Text> output, Reporter reporter
                   ) throws IOException {
-              String corrected = correct(key.toString());
-              word.set(corrected);
-              output.collect(value, word);
+              String corrected = correct(key.toString().toLowerCase());
+              if(!corrected.equalsIgnoreCase(key.toString())) {
+                  word.set(key.toString() + " corrected to " + corrected);
+                  output.collect(value, word);
+              }
           }
 
           public void configure(JobConf conf) {
               try{
+                  // p
                   // Read in big.txt
                   LOG.info("Mapper reading big.txt");
                   FileSystem fs = FileSystem.get(conf);
@@ -200,10 +203,10 @@ public class SpellCheck{
                       System.exit(2);
                   }
                   BufferedReader in = new BufferedReader(new InputStreamReader(fs.open(big_path)));
-                  Pattern p = Pattern.compile("\\w+");
+                  Pattern p = Pattern.compile("[a-zA-Z]+");
                   for(String temp = ""; temp != null; temp = in.readLine()){
                       Matcher m = p.matcher(temp.toLowerCase());
-                      while(m.find()) nWords.put((temp = m.group()), nWords.containsKey(temp) ? nWords.get(temp) + 1 : 1);
+                      while(m.find()) nWords.put((temp = m.group()).toLowerCase(), nWords.containsKey(temp) ? nWords.get(temp) + 1 : 1);
                   }           
                   in.close();
               }catch(IOException e) {
@@ -227,15 +230,18 @@ public class SpellCheck{
                 // Tokenize by lots of nonalphanumeric chars.
                 // If we did value.ToString.split() we could use a regex instead of hardcoded delims,
                 // but this would use a ton of space.
-                StringTokenizer itr = new StringTokenizer(value.toString(), " \n\t.,;:(){}[];");
-                while (itr.hasMoreTokens()) {
+                Pattern p = Pattern.compile("[a-zA-Z]+");
+
+                Matcher m = p.matcher(value.toString());
+                while(m.find()) {
                     // Make sure framework knows we are making progress.
                     reporter.progress();
                     // We saw another instance of the enxt word
-                    word.set(itr.nextToken());
+                    word.set(m.group());
                     output.collect(word, one);
+
                 }
-            }
+            }           
         }
 
     // Sums up the counts for each key.
