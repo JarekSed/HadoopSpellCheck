@@ -186,9 +186,17 @@ public class SpellCheck{
           // also swaps k,vs
           public void map(Text key, IntWritable value, OutputCollector<IntWritable, Text> output, Reporter reporter
                   ) throws IOException {
-              String corrected = correct(key.toString().toLowerCase());
+
+              // If the input is greater than our largest word, we can't correct it
+              String keyString = key.toString();
+              if (keyString.length() > largestWord) {
+                  LOG.info("Not trying to check huge word: " + keyString);
+                  return;
+              }
+
+              String corrected = correct(keyString.toLowerCase());
               reporter.progress();
-              if(!corrected.equalsIgnoreCase(key.toString())) {
+              if (!corrected.equalsIgnoreCase(key.toString())) {
                   word.set(key.toString() + " corrected to " + corrected);
                   output.collect(value, word);
               }
