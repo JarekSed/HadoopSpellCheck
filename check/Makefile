@@ -1,12 +1,14 @@
 .PHONY: spellcheck test upload
 
-PWD=`pwd`
+PWD=$(shell pwd)
+HADOOP=/.freespace/$(USER)/hadoop/bin/hadoop
+TMPDIR=$(shell $(HADOOP) fs -ls /tmp | grep $(USER) | grep tmp_sort_path | sort | tail -n 1 | awk '{print $$8}')
+PARTFILES=$(shell $(HADOOP) fs -ls $(TMPDIR) | grep part | awk '{print $$8}')
 
-all: reeder check
+all: download
 
-reeder:
-	javac -classpath /.freespace/$(USER)/hadoop/lib/commons-logging-1.1.1.jar:/.freespace/$(USER)/hadoop/hadoop-core-0.20.203.0.jar:/.freespace/$(USER)/hadoop/lib/commons-cli-1.2.jar reeder.java -target 1.6 -source 1.6
-
-check: reeder
-	java -classpath /.freespace/$(USER)/hadoop/lib/commons-logging-1.1.1.jar:/.freespace/$(USER)/hadoop/hadoop-core-0.20.203.0.jar:/.freespace/$(USER)/hadoop/lib/commons-cli-1.2.jar:/.freespace/$(USER)/hadoop/lib/*:. reeder part-00000
-
+download:
+	@FILES="$(PARTFILES)"; for FILE in $$FILES; do \
+		echo "retrieving $$FILE";										 \
+		$(HADOOP) fs -get $$FILE `basename $$FILE`;	 \
+	done
