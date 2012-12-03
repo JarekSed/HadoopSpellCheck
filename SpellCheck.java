@@ -157,7 +157,7 @@ public class SpellCheck{
     // This maps the text by counting how many times each word occurs. 
     // On each word, emits a <word, 1> pair
   public static class SpellCheckMapper
-      extends MapReduceBase implements Mapper<Object, Text, IntWritable, Text> {
+      extends MapReduceBase implements Mapper<Text, IntWritable, IntWritable, Text> {
 
           private static final HashMap<String, Integer> nWords = new HashMap<String, Integer>();
           private final static IntWritable one = new IntWritable(1);
@@ -222,14 +222,14 @@ public class SpellCheck{
           }
 
           // also swaps k,vs
-          public void map(Object key, Text value, OutputCollector<IntWritable, Text> output, Reporter reporter
+          public void map(Text key, IntWritable value, OutputCollector<IntWritable, Text> output, Reporter reporter
                   ) throws IOException {
               // Tokenize by lots of nonalphanumeric chars.
               // If we did value.ToString.split() we could use a regex instead of hardcoded delims,
               // but this would use a ton of space.
-              String corrected = correct(value.toString());
+              String corrected = correct(key.toString());
               word.set(corrected);
-              output.collect((IntWritable) key, word);
+              output.collect(value, word);
           }
 
           public void configure(JobConf conf) {

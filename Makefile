@@ -12,3 +12,6 @@ spellcheck:
 
 upload:
 	$(HADOOP) dfs -put $(PWD)/big.txt /tmp/rjy/big.txt
+
+test:
+	bin/hadoop jar spellcheck.jar SpellCheck -Dmapred.reduce.tasks=10 /tmp/hadoop/$USER/input/stock_symbol_keywords.tsv /tmp/hadoop/$USER/output
