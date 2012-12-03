@@ -2,7 +2,8 @@
 
 PWD=$(shell pwd)
 HADOOP=/.freespace/$(USER)/hadoop/bin/hadoop
-TMPDIR=$(shell $(HADOOP) fs -ls /tmp | grep $(USER) | grep tmp_sort_path | sort | tail -n 1 | awk '{print $$8}')
+HUSER=jarek
+TMPDIR=$(shell $(HADOOP) fs -ls /tmp | grep $(HUSER) | grep tmp_sort_path | sort | tail -n 1 | awk '{print $$8}')
 PARTFILES=$(shell $(HADOOP) fs -ls $(TMPDIR) | grep part | awk '{print $$8}')
 
 all: download
