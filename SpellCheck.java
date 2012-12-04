@@ -189,7 +189,7 @@ public class SpellCheck{
 
               // If the input is greater than our largest word, we can't correct it
               String keyString = key.toString();
-              if (keyString.length() > largestWord) {
+              if (keyString.length() > largestWord + 2) {
                   LOG.info("Not trying to check huge word: " + keyString);
                   return;
               }
