@@ -164,7 +164,7 @@ public class SpellCheck{
 
           private int largestWord = 0;
 
-          private static final ArrayList<String> edits(String word) {
+          private final ArrayList<String> edits(String word) {
               ArrayList<String> result = new ArrayList<String>();
               for(int i=0; i < word.length(); ++i) result.add(word.substring(0, i) + word.substring(i+1));
               for(int i=0; i < word.length()-1; ++i) result.add(word.substring(0, i) + word.substring(i+1, i+2) + word.substring(i, i+1) + word.substring(i+2));
@@ -173,31 +173,31 @@ public class SpellCheck{
               return result;
           }
 
-          public static final String correct(String word) {
+          public final String correct(String word) {
+              if (word.length() > largestWord + 3) {
+                  LOG.info("Not trying to check huge word: " + word);
+                  return null;
+              }
+
               if(nWords.containsKey(word)) return word;
               ArrayList<String> list = edits(word);
               HashMap<Integer, String> candidates = new HashMap<Integer, String>();
               for(String s : list) if(nWords.containsKey(s)) candidates.put(nWords.get(s),s);
               if(candidates.size() > 0) return candidates.get(Collections.max(candidates.keySet()));
               for(String s : list) for(String w : edits(s)) if(nWords.containsKey(w)) candidates.put(nWords.get(w),w);
-              return candidates.size() > 0 ? candidates.get(Collections.max(candidates.keySet())) : word + ", since nothing else seems closer...";
+              return candidates.size() > 0 ? candidates.get(Collections.max(candidates.keySet())) : null;
           }
 
           // also swaps k,vs
           public void map(Text key, IntWritable value, OutputCollector<IntWritable, Text> output, Reporter reporter
                   ) throws IOException {
-
-              // If the input is greater than our largest word, we can't correct it
-              String keyString = key.toString();
-              if (keyString.length() > largestWord + 2) {
-                  LOG.info("Not trying to check huge word: " + keyString);
-                  return;
-              }
-
-              String corrected = correct(keyString.toLowerCase());
+              String corrected = correct(key.toString().toLowerCase());
               reporter.progress();
-              if (!corrected.equalsIgnoreCase(key.toString())) {
+              if (corrected != null) {
                   word.set(key.toString() + " corrected to " + corrected);
+                  output.collect(value, word);
+              } else {
+                  word.set(key.toString() + " could not be corrected");
                   output.collect(value, word);
               }
           }
