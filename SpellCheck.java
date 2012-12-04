@@ -175,7 +175,7 @@ public class SpellCheck{
 
           public final String correct(String word) {
               if (word.length() > largestWord + 3) {
-                  LOG.info("Not trying to check huge word: " + word);
+                  LOG.info("Not tryna check huge word: " + word);
                   return null;
               }
 

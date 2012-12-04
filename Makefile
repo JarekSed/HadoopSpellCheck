@@ -26,4 +26,4 @@ simple_test: spellcheck
 # download results
 download:
 	mkdir -p output
-	$(HADOOP) fs -get /tmp/hadoop/jarek/output/* output/
+	$(HADOOP) fs -get /tmp/hadoop/$(USER)/output/* output/
