@@ -12,8 +12,8 @@ spellcheck:
 	jar cvf $(OUTJAR) -C $(PWD)/spellcheck .
 
 upload:
-	$(HADOOP) dfs -put $(PWD)/big.txt /tmp/rjy/big.txt
-	$(HADOOP) dfs -put $(PWD)/simple.txt /tmp/rjy/big.txt
+	$(HADOOP) dfs -put $(PWD)/big.txt /tmp/rjy/big.txt; exit 0
+	$(HADOOP) dfs -put $(PWD)/simple.txt /tmp/hadoop/$(USER)/input/simple.txt; exit 0
 
 test: spellcheck
 	$(HADOOP) fs -rmr /tmp/hadoop/$(USER)/output; exit 0

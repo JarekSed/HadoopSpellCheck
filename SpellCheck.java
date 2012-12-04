@@ -179,7 +179,7 @@ public class SpellCheck{
                   return null;
               }
 
-              if(nWords.containsKey(word)) return word;
+              if(nWords.containsKey(word)) return null;
               ArrayList<String> list = edits(word);
               HashMap<Integer, String> candidates = new HashMap<Integer, String>();
               for(String s : list) if(nWords.containsKey(s)) candidates.put(nWords.get(s),s);
