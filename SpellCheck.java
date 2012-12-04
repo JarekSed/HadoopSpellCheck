@@ -173,13 +173,17 @@ public class SpellCheck{
               return result;
           }
 
+          // returns:
+          //    null, if we couldn't correct the word because its too large or because no 1-edits or 2-edits appeared in the dictionary
+          //    a corrected word, if we were able to find a likely correction
+          //    the original word, if its already correct
           public final String correct(String word) {
               if (word.length() > largestWord + 3) {
                   LOG.info("Not tryna check huge word: " + word);
                   return null;
               }
 
-              if(nWords.containsKey(word)) return null;
+              if(nWords.containsKey(word)) return word;
               ArrayList<String> list = edits(word);
               HashMap<Integer, String> candidates = new HashMap<Integer, String>();
               for(String s : list) if(nWords.containsKey(s)) candidates.put(nWords.get(s),s);
@@ -193,7 +197,9 @@ public class SpellCheck{
                   ) throws IOException {
               String corrected = correct(key.toString().toLowerCase());
               reporter.progress();
-              if (corrected != null) {
+              if (corrected.equalsIgnoreCase(key.toString())) {
+                  // do nothing; we want no output in this case
+              } else if (corrected != null) {
                   word.set(key.toString() + " corrected to " + corrected);
                   output.collect(value, word);
               } else {
