@@ -250,7 +250,7 @@ public class SpellCheck{
                 while(m.find()) {
                     // Make sure framework knows we are making progress.
                     reporter.progress();
-                    // We saw another instance of the enxt word
+                    // We saw another instance of the next word
                     word.set(m.group());
                     output.collect(word, one);
 
