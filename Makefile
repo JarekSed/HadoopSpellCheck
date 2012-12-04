@@ -22,8 +22,10 @@ test: spellcheck
 simple_test: spellcheck
 	$(HADOOP) fs -rmr /tmp/hadoop/$(USER)/output; exit 0
 	$(HADOOP) jar $(OUTJAR) SpellCheck /tmp/hadoop/$(USER)/input/simple.txt /tmp/hadoop/$(USER)/output
+	make download
 
 # download results
 download:
+	rm -rf output
 	mkdir -p output
 	$(HADOOP) fs -get /tmp/hadoop/$(USER)/output/* output/
