@@ -197,13 +197,14 @@ public class SpellCheck{
                   ) throws IOException {
               String corrected = correct(key.toString().toLowerCase());
               reporter.progress();
-              if (corrected.equalsIgnoreCase(key.toString())) {
-                  // do nothing; we want no output in this case
-              } else if (corrected != null) {
-                  word.set(key.toString() + " corrected to " + corrected);
-                  output.collect(value, word);
-              } else {
+              if (corrected == null) {
                   word.set(key.toString() + " could not be corrected");
+                  output.collect(value, word);
+              } else if (corrected.equalsIgnoreCase(key.toString())) {
+                  // do nothing; we want no output in this case
+              } else {
+                  // otherwise it's not null and its not the original word
+                  word.set(key.toString() + " corrected to " + corrected);
                   output.collect(value, word);
               }
           }
@@ -256,7 +257,7 @@ public class SpellCheck{
                 while(m.find()) {
                     // Make sure framework knows we are making progress.
                     reporter.progress();
-                    // We saw another instance of the next word
+                    // We saw another instance of the enxt word
                     word.set(m.group());
                     output.collect(word, one);
 
