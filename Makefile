@@ -19,6 +19,10 @@ test: spellcheck
 	$(HADOOP) fs -rmr /tmp/hadoop/$(USER)/output; exit 0
 	$(HADOOP) jar $(OUTJAR) SpellCheck -Dmapred.reduce.tasks=10 /tmp/hadoop/$(USER)/input/stock_symbol_keywords.tsv /tmp/hadoop/$(USER)/output
 
+big_test: spellcheck
+	$(HADOOP) fs -rmr /tmp/hadoop/$(USER)/output; exit 0
+	$(HADOOP) jar $(OUTJAR) SpellCheck -Dmapred.reduce.tasks=50  -Dmapred.map.tasks=50 -Dmapred.tasktracker.reduce.tasks.maximum=50 -Dmapred.task.timeout=18000000  /tmp/hadoop/jarek/input/enwiki-20080103.user_talk /tmp/hadoop/$(USER)/output
+
 simple_test: spellcheck
 	$(HADOOP) fs -rmr /tmp/hadoop/$(USER)/output; exit 0
 	$(HADOOP) jar $(OUTJAR) SpellCheck /tmp/hadoop/$(USER)/input/simple.txt /tmp/hadoop/$(USER)/output
